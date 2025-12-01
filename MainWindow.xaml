@@ -1,4 +1,4 @@
-﻿<Window x:Class="gc_bot.MainWindow"
+<Window x:Class="gc_bot.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -32,15 +32,17 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Top: externalized control -->
+            <!-- Top: externalized control (named so MainWindow can subscribe to RoleAdded) -->
             <Border Grid.Row="0" Padding="8" BorderBrush="LightGray" BorderThickness="0,0,0,1">
-                <controls:TopButtons x:Name="TopButtonsControl"/>
+                <controls:TopButtons x:Name="TopButtonsControl"
+                                     ButtonClicked="ButtonClick"
+                                     ButtonsCommand="{Binding ButtonCommand}" />
             </Border>
 
             <!-- Bottom: externalized list control bound to MainWindow.Items -->
             <Border Grid.Row="1" Padding="8">
                 <controls:ItemsPanel x:Name="ItemsPanelControl"
-                                     ItemsSource="{Binding Items, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                     ItemsSource="{Binding Items}" />
             </Border>
         </Grid>
     </DockPanel>

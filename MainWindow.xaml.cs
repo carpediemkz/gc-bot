@@ -1,8 +1,9 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Windows;
 using System.Windows.Input;
 using gc_bot.ViewModels;
+using gc_bot.Views;
 
 namespace gc_bot
 {
@@ -16,17 +17,37 @@ namespace gc_bot
 
             _vm = new MainViewModel();
             DataContext = _vm;
-            // subscribe to the TopButtons CLR event from code-behind
-            
-            TopButtonsControl.ButtonClicked += ButtonClick;
+
+            // Subscribe to RoleAdded raised by the TopButtons control.
+            TopButtonsControl.RoleAdded += TopButtonsControl_RoleAdded;
         }
 
-        // event handler signature must match EventHandler<int>: (object sender, int arg)
+        private void TopButtonsControl_RoleAdded(object? sender, ItemViewModel e)
+        {
+            if (e is not null)
+            {
+                _vm.Items.Add(e);
+                ItemsPanelControl?.ScrollToEnd();
+            }
+        }
+
+        // Handler wired in XAML: ButtonClicked="ButtonClick"
         private void ButtonClick(object? sender, int index)
         {
-            // empty here
-            // todo
-            // ItemsPanelControl?.ScrollToEnd();
+            // Removed AddRole dialog logic from here — TopButtons handles Add Role internally.
+            // Delegate other indices to the ViewModel command if available.
+            if (_vm.ButtonCommand is ICommand cmd && cmd.CanExecute(index))
+            {
+                cmd.Execute(index);
+                ItemsPanelControl?.ScrollToEnd();
+            }
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            // Unsubscribe to avoid leaks.
+            TopButtonsControl.RoleAdded -= TopButtonsControl_RoleAdded;
+            base.OnClosed(e);
         }
 
         private void New_Click(object? sender, RoutedEventArgs e)

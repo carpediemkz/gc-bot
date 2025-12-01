@@ -1,0 +1,68 @@
+<Window x:Class="gc_bot.Views.AddRoleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Add Role" Height="380" Width="480" WindowStartupLocation="CenterOwner" ResizeMode="CanResize">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- Inputs -->
+            <RowDefinition Height="Auto"/>  <!-- Separator -->
+            <RowDefinition Height="*"/>     <!-- Login info -->
+            <RowDefinition Height="Auto"/>  <!-- Buttons -->
+        </Grid.RowDefinitions>
+
+        <!-- Inputs grid -->
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">平台：</TextBlock>
+            <ComboBox Grid.Row="0" Grid.Column="1" MinWidth="200"
+                      ItemsSource="{Binding Platforms}"
+                      SelectedItem="{Binding SelectedPlatform, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,6,0,0">服务器：</TextBlock>
+            <TextBox Grid.Row="1" Grid.Column="1" Margin="0,6,0,0" MinWidth="120"
+                     Text="{Binding Server, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     PreviewTextInput="Server_PreviewTextInput"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,6,0,0">用户名：</TextBlock>
+            <TextBox Grid.Row="2" Grid.Column="1" Margin="0,6,0,0" MinWidth="200"
+                     Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Margin="0,6,0,0">密码：</TextBlock>
+            <PasswordBox Grid.Row="3" Grid.Column="1" Margin="0,6,0,0" MinWidth="200" x:Name="PasswordBox"
+                         PasswordChanged="PasswordBox_PasswordChanged"/>
+        </Grid>
+
+        <Separator Grid.Row="1" Margin="0,4"/>
+
+        <!-- Login info area -->
+        <Border Grid.Row="2" Margin="0,8,0,8" BorderThickness="1" BorderBrush="#FFD0D0D0" Padding="8" CornerRadius="4">
+            <StackPanel>
+                <TextBlock Text="Login Info:" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Height="160">
+                    <TextBlock Text="{Binding LoginInfo}" TextWrapping="Wrap"/>
+                </ScrollViewer>
+            </StackPanel>
+        </Border>
+
+        <!-- Action buttons -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button Content="Login" Width="90" Margin="6,0" Command="{Binding LoginCommand}" />
+            <Button Content="Confirm" Width="90" Margin="6,0" Command="{Binding ConfirmCommand}" />
+            <Button Content="Cancel" Width="90" Margin="6,0" Command="{Binding CancelCommand}" />
+        </StackPanel>
+    </Grid>
+</Window>

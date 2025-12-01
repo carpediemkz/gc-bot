@@ -3,7 +3,9 @@ using System.Windows.Input;
 
 namespace gc_bot.ViewModels
 {
-    public sealed class RelayCommand : ICommand
+    // Marked partial so the small extension (RaiseCanExecuteChanged) declared
+    // in another file (AddRoleViewModel.cs) compiles correctly.
+    public sealed partial class RelayCommand : ICommand
     {
         private readonly Action<object?> _execute;
         private readonly Func<object?, bool>? _canExecute;

@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Height="Auto" Width="Auto">
     <UniformGrid Rows="2" Columns="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="4">
-        <Button Content="Button 1" Click="OnButtonClick" Tag="1" Margin="4"/>
+        <Button Content="新增角色" Click="OnButtonClick" Tag="1" Margin="4"/>
         <Button Content="Button 2" Click="OnButtonClick" Tag="2" Margin="4"/>
         <Button Content="Button 3" Click="OnButtonClick" Tag="3" Margin="4"/>
         <Button Content="Button 4" Click="OnButtonClick" Tag="4" Margin="4"/>

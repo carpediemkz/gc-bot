@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using gc_bot.ViewModels;
 using gc_bot.Views;
+using gc_bot.Model;
 
 namespace gc_bot
 {
@@ -26,7 +27,16 @@ namespace gc_bot
         {
             if (e is not null)
             {
-                _vm.Items.Add(e);
+                // Convert the incoming ItemViewModel (title/description) into a Role model
+                // and add it to the main ViewModel using its thread-safe AddRole method.
+                var nickname = string.IsNullOrWhiteSpace(e.Title) ? "Unnamed" : e.Title;
+                var role = new Role(region: "未知大区", server: "0", faction: "未知势力", nickname: nickname, level: 1)
+                {
+                    // put the description into a resource or use as LoginInfo -> map to Gold as placeholder if needed
+                    // keep numeric resources at 0 by default; adapt mapping as required.
+                };
+
+                _vm.AddRole(role);
                 ItemsPanelControl?.ScrollToEnd();
             }
         }

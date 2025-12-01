@@ -8,11 +8,42 @@
                   ScrollViewer.VerticalScrollBarVisibility="Auto">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Margin="0,4">
-                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
-                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                        <TextBlock Text="{Binding Timestamp, StringFormat=G}" FontSize="11" Foreground="Gray" HorizontalAlignment="Right" />
-                    </StackPanel>
+                    <Border Padding="8" Margin="0,4" BorderThickness="1" BorderBrush="#FFE8E8E8" CornerRadius="4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="3*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{Binding Nickname}" FontWeight="Bold" FontSize="14"/>
+                                <TextBlock Text="{Binding Region}" FontSize="11" Foreground="Gray"/>
+                                <TextBlock Text="{Binding Server}" FontSize="11" Foreground="Gray"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock>
+                                    <Run Text="Lv: "/>
+                                    <Run Text="{Binding Level}"/>
+                                    <Run Text="  |  Faction: "/>
+                                    <Run Text="{Binding Faction}"/>
+                                </TextBlock>
+
+                                <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" FontSize="12">
+                                    <Run Text="Gold: "/><Run Text="{Binding Gold}"/><Run Text="  "/>
+                                    <Run Text="Silver: "/><Run Text="{Binding Silver}"/><Run Text="  "/>
+                                    <Run Text="Wood: "/><Run Text="{Binding Wood}"/><Run Text="  "/>
+                                    <Run Text="Grain: "/><Run Text="{Binding Grain}"/>
+                                </TextBlock>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button Content="Edit" Width="60" Margin="0,0,0,4"/>
+                                <Button Content="Remove" Width="60" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

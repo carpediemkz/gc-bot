@@ -39,10 +39,10 @@
                                      ButtonsCommand="{Binding ButtonCommand}" />
             </Border>
 
-            <!-- Bottom: externalized list control bound to MainWindow.Items -->
+            <!-- Bottom: bind to Roles (was bound to Items previously) -->
             <Border Grid.Row="1" Padding="8">
                 <controls:ItemsPanel x:Name="ItemsPanelControl"
-                                     ItemsSource="{Binding Items}" />
+                                     ItemsSource="{Binding Roles}" />
             </Border>
         </Grid>
     </DockPanel>

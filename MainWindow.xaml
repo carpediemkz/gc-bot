@@ -6,7 +6,26 @@
         xmlns:local="clr-namespace:gc_bot"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top" IsMainMenu="True">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" Click="New_Click" />
+                <MenuItem Header="_Open..." Click="Open_Click" />
+                <Separator />
+                <MenuItem Header="E_xit" Click="Exit_Click" />
+            </MenuItem>
 
-    </Grid>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Preferences..." Click="Preferences_Click" />
+            </MenuItem>
+
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About" Click="About_Click" />
+            </MenuItem>
+        </Menu>
+
+        <Grid>
+            <!-- Main content goes here -->
+        </Grid>
+    </DockPanel>
 </Window>

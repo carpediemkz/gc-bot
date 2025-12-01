@@ -4,9 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:gc_bot"
+        xmlns:controls="clr-namespace:gc_bot.Controls"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="gc_bot" Height="600" Width="900">
     <DockPanel>
+
         <Menu DockPanel.Dock="Top" IsMainMenu="True">
             <MenuItem Header="_File">
                 <MenuItem Header="_New" Click="New_Click" />
@@ -25,7 +27,21 @@
         </Menu>
 
         <Grid>
-            <!-- Main content goes here -->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Top: externalized control -->
+            <Border Grid.Row="0" Padding="8" BorderBrush="LightGray" BorderThickness="0,0,0,1">
+                <controls:TopButtons x:Name="TopButtonsControl"/>
+            </Border>
+
+            <!-- Bottom: externalized list control bound to MainWindow.Items -->
+            <Border Grid.Row="1" Padding="8">
+                <controls:ItemsPanel x:Name="ItemsPanelControl"
+                                     ItemsSource="{Binding Items, RelativeSource={RelativeSource AncestorType=Window}}"/>
+            </Border>
         </Grid>
     </DockPanel>
 </Window>

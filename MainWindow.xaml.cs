@@ -1,30 +1,36 @@
-﻿using System.Text;
+﻿using Microsoft.Win32;
+using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.Win32;
+using gc_bot.ViewModels;
 
 namespace gc_bot
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly MainViewModel _vm;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            _vm = new MainViewModel();
+            DataContext = _vm;
+            // subscribe to the TopButtons CLR event from code-behind
+            
+            TopButtonsControl.ButtonClicked += ButtonClick;
+        }
+
+        // event handler signature must match EventHandler<int>: (object sender, int arg)
+        private void ButtonClick(object? sender, int index)
+        {
+            // empty here
+            // todo
+            // ItemsPanelControl?.ScrollToEnd();
         }
 
         private void New_Click(object? sender, RoutedEventArgs e)
         {
-            // Placeholder: create new document or reset UI state
             MessageBox.Show(this, "New command invoked.", "New", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
@@ -39,14 +45,10 @@ namespace gc_bot
             if (dlg.ShowDialog(this) == true)
             {
                 MessageBox.Show(this, $"Selected file: {dlg.FileName}", "Open", MessageBoxButton.OK, MessageBoxImage.Information);
-                // TODO: load the file into the app
             }
         }
 
-        private void Exit_Click(object? sender, RoutedEventArgs e)
-        {
-            Close();
-        }
+        private void Exit_Click(object? sender, RoutedEventArgs e) => Close();
 
         private void Preferences_Click(object? sender, RoutedEventArgs e)
         {

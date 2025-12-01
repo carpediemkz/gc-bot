@@ -3,49 +3,51 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Height="Auto" Width="Auto">
     <Border Padding="8">
-        <ListView x:Name="PART_ListView"
-                  HorizontalContentAlignment="Stretch"
-                  ScrollViewer.VerticalScrollBarVisibility="Auto">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Border Padding="8" Margin="0,4" BorderThickness="1" BorderBrush="#FFE8E8E8" CornerRadius="4">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="3*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+        <!-- Use a DataGrid for a column-aligned table view so different roles' values align -->
+        <DataGrid x:Name="PART_DataGrid"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="False"
+                  EnableRowVirtualization="True"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch">
+            <DataGrid.Columns>
+                <!-- Selection checkbox column -->
+                <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected, Mode=TwoWay}" Width="40"/>
 
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="{Binding Nickname}" FontWeight="Bold" FontSize="14"/>
-                                <TextBlock Text="{Binding Region}" FontSize="11" Foreground="Gray"/>
-                                <TextBlock Text="{Binding Server}" FontSize="11" Foreground="Gray"/>
+                <DataGridTextColumn Header="Region" Binding="{Binding Region}" Width="120"/>
+                <DataGridTextColumn Header="Server" Binding="{Binding Server}" Width="70"/>
+                <DataGridTextColumn Header="Faction" Binding="{Binding Faction}" Width="120"/>
+                <DataGridTextColumn Header="Nickname" Binding="{Binding Nickname}" Width="150"/>
+                <DataGridTextColumn Header="Lv" Binding="{Binding Level}" Width="50"/>
+
+                <!-- Resources -->
+                <DataGridTextColumn Header="Gold" Binding="{Binding Gold}" Width="80"/>
+                <DataGridTextColumn Header="Silver" Binding="{Binding Silver}" Width="80"/>
+                <DataGridTextColumn Header="Wood" Binding="{Binding Wood}" Width="80"/>
+                <DataGridTextColumn Header="Grain" Binding="{Binding Grain}" Width="80"/>
+                <DataGridTextColumn Header="RefinedIron" Binding="{Binding RefinedIron}" Width="90"/>
+                <DataGridTextColumn Header="Meteorite" Binding="{Binding Meteorite}" Width="90"/>
+                <DataGridTextColumn Header="Silk" Binding="{Binding Silk}" Width="80"/>
+                <DataGridTextColumn Header="Pouches" Binding="{Binding Pouches}" Width="80"/>
+                <DataGridTextColumn Header="Charcoal" Binding="{Binding Charcoal}" Width="80"/>
+                <DataGridTextColumn Header="Essence" Binding="{Binding Essence}" Width="80"/>
+                <DataGridTextColumn Header="PreciousOre" Binding="{Binding PreciousOre}" Width="90"/>
+                <DataGridTextColumn Header="Phantoms" Binding="{Binding Phantoms}" Width="80"/>
+
+                <!-- Action column: only Remove (per-row) -->
+                <DataGridTemplateColumn Header="Actions" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="Remove" Width="80" Margin="4,0"
+                                        Click="RemoveRow_Click"/>
                             </StackPanel>
-
-                            <StackPanel Grid.Column="1">
-                                <TextBlock>
-                                    <Run Text="Lv: "/>
-                                    <Run Text="{Binding Level}"/>
-                                    <Run Text="  |  Faction: "/>
-                                    <Run Text="{Binding Faction}"/>
-                                </TextBlock>
-
-                                <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" FontSize="12">
-                                    <Run Text="Gold: "/><Run Text="{Binding Gold}"/><Run Text="  "/>
-                                    <Run Text="Silver: "/><Run Text="{Binding Silver}"/><Run Text="  "/>
-                                    <Run Text="Wood: "/><Run Text="{Binding Wood}"/><Run Text="  "/>
-                                    <Run Text="Grain: "/><Run Text="{Binding Grain}"/>
-                                </TextBlock>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                <Button Content="Edit" Width="60" Margin="0,0,0,4"/>
-                                <Button Content="Remove" Width="60" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
     </Border>
 </UserControl>

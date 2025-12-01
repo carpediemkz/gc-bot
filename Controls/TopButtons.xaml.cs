@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using gc_bot.ViewModels;
 using gc_bot.Views;
+using gc_bot.Model;
 
 namespace gc_bot.Controls
 {
@@ -22,9 +23,9 @@ namespace gc_bot.Controls
 
         /// <summary>
         /// Raised when a new role is successfully created via the AddRole dialog.
-        /// Subscribers (typically the host window) receive the created ItemViewModel.
+        /// Subscribers receive the created Role.
         /// </summary>
-        public event EventHandler<ItemViewModel>? RoleAdded;
+        public event EventHandler<Role>? RoleAdded;
 
         public static readonly DependencyProperty ButtonsCommandProperty =
             DependencyProperty.Register(
@@ -48,14 +49,22 @@ namespace gc_bot.Controls
                 index = idx;
             }
 
-            // For MVVM-friendly behavior, raise the CLR event first.
-            ButtonClicked?.Invoke(this, index);
-
-            // If button 1 is "????" (Add Role) handle dialog here inside the control.
+            // Special-case: index == 1 is "新增角色" (open AddRole dialog).
             if (index == 1)
             {
-                // Create and show the Add Role dialog. Use the nearest window as owner.
                 var addVm = new AddRoleViewModel();
+                EventHandler<Role>? createdHandler = null;
+
+                // Subscribe to RoleCreated so we can re-raise RoleAdded to hosts.
+                createdHandler = (s, role) =>
+                {
+                    RoleAdded?.Invoke(this, role);
+                };
+
+                // AddRoleViewModel raises RoleCreated via Action<Role>, adapt to EventHandler<Role>
+                void RoleCreatedAdapter(Role role) => createdHandler?.Invoke(this, role);
+                addVm.RoleCreated += RoleCreatedAdapter;
+
                 var dlg = new AddRoleWindow
                 {
                     DataContext = addVm,
@@ -63,20 +72,17 @@ namespace gc_bot.Controls
                 };
 
                 var res = dlg.ShowDialog();
-                if (res == true)
-                {
-                    // Create an ItemViewModel and notify host via RoleAdded event.
-                    var title = $"{addVm.Username}@{addVm.SelectedPlatform}/{addVm.Server}";
-                    var item = new ItemViewModel(title, addVm.LoginInfo ?? string.Empty);
-                    RoleAdded?.Invoke(this, item);
-                }
 
-                // Do not continue to execute the generic ButtonsCommand for this special action,
-                // unless you want both behaviors. Return to avoid duplicate handling.
+                // Unsubscribe adapter to avoid leaks
+                addVm.RoleCreated -= RoleCreatedAdapter;
+
+                // Do not raise generic ButtonClicked or execute ButtonsCommand for this action.
                 return;
             }
 
-            // Fallback: execute bound ICommand if available for other buttons.
+            // Non-add actions: raise CLR event for backward compatibility, then execute ICommand (MVVM).
+            ButtonClicked?.Invoke(this, index);
+
             if (ButtonsCommand is ICommand cmd && cmd.CanExecute(index))
             {
                 cmd.Execute(index);

@@ -60,9 +60,9 @@
 
         <!-- Action buttons -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-            <Button Content="Login" Width="90" Margin="6,0" Command="{Binding LoginCommand}" />
-            <Button Content="Confirm" Width="90" Margin="6,0" Command="{Binding ConfirmCommand}" />
-            <Button Content="Cancel" Width="90" Margin="6,0" Command="{Binding CancelCommand}" />
+            <Button Content="登陆" Width="90" Margin="6,0" Command="{Binding LoginCommand}" />
+            <Button Content="确认" Width="90" Margin="6,0" Command="{Binding ConfirmCommand}" />
+            <Button Content="取消" Width="90" Margin="6,0" Command="{Binding CancelCommand}" />
         </StackPanel>
     </Grid>
 </Window>

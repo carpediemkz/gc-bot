@@ -13,6 +13,7 @@ namespace gc_bot.ViewModels
     public sealed class RoleViewModel : INotifyPropertyChanged
     {
         private readonly Role _role;
+        private bool _isSelected;
 
         public RoleViewModel(Role role)
         {
@@ -20,6 +21,23 @@ namespace gc_bot.ViewModels
         }
 
         public Role Model => _role;
+
+        /// <summary>
+        /// Selection flag used by the UI (checkbox).
+        /// </summary>
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (_isSelected == value) return;
+                ExecuteOnUI(() =>
+                {
+                    _isSelected = value;
+                    OnPropertyChanged();
+                });
+            }
+        }
 
         public string Region
         {

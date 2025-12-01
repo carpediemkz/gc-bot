@@ -2,8 +2,8 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using System.Windows.Input;
+using gc_bot.Model;
 
 namespace gc_bot.ViewModels
 {
@@ -27,8 +27,27 @@ namespace gc_bot.ViewModels
 
             SelectedPlatform = Platforms.Count > 0 ? Platforms[0] : string.Empty;
 
-            LoginCommand = new RelayCommand(async _ => await LoginAsync(), _ => !IsBusy);
-            ConfirmCommand = new RelayCommand(_ => RequestClose?.Invoke(true), _ => !IsBusy);
+            // Placeholder (empty) login command — implement later.
+            LoginCommand = new RelayCommand(_ => { /* TODO: implement login */ }, _ => !IsBusy);
+
+            // Confirm: create a Role and notify subscribers, then request the window to close with 'true'.
+            ConfirmCommand = new RelayCommand(_ =>
+            {
+                var role = new Role(
+                    region: SelectedPlatform ?? "未知大区",
+                    server: string.IsNullOrWhiteSpace(Server) ? "0" : Server,
+                    faction: "未知势力",
+                    nickname: string.IsNullOrWhiteSpace(Username) ? "未命名" : Username,
+                    level: 1)
+                {
+                    // initial resources left at defaults (0)
+                };
+
+                RoleCreated?.Invoke(role);
+                RequestClose?.Invoke(true);
+            }, _ => !IsBusy);
+
+            // Cancel: request close with false
             CancelCommand = new RelayCommand(_ => RequestClose?.Invoke(false));
         }
 
@@ -72,7 +91,6 @@ namespace gc_bot.ViewModels
             {
                 if (SetProperty(ref _isBusy, value))
                 {
-                    // notify commands can-execute changed
                     (LoginCommand as RelayCommand)?.RaiseCanExecuteChanged();
                     (ConfirmCommand as RelayCommand)?.RaiseCanExecuteChanged();
                 }
@@ -86,25 +104,8 @@ namespace gc_bot.ViewModels
         // The Window subscribes to this to close the dialog with the boolean result.
         public event Action<bool?>? RequestClose;
 
-        private async Task LoginAsync()
-        {
-            IsBusy = true;
-            try
-            {
-                // Simulate network request. Replace with real IRequestService call later.
-                await Task.Delay(700);
-                // Example fake response:
-                LoginInfo = $"Mock login succeeded for '{Username}' on {SelectedPlatform} (server {Server}).";
-            }
-            catch (Exception ex)
-            {
-                LoginInfo = $"Login failed: {ex.Message}";
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
+        // New event: raised when ConfirmCommand creates a Role.
+        public event Action<Role>? RoleCreated;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

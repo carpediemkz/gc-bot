@@ -52,7 +52,9 @@ namespace gc_bot.Controls
             // Special-case: index == 1 is "新增角色" (open AddRole dialog).
             if (index == 1)
             {
-                var addVm = new AddRoleViewModel();
+                // When opening the AddRole dialog, inject a real IRequestService implementation if available.
+                var requestService = new gc_bot.Requests.ApiClient();
+                var addVm = new AddRoleViewModel(requestService);
                 EventHandler<Role>? createdHandler = null;
 
                 // Subscribe to RoleCreated so we can re-raise RoleAdded to hosts.

@@ -2,7 +2,10 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using gc_bot.Requests;
+using gc_bot.Requests.Models;
 using gc_bot.Model;
 
 namespace gc_bot.ViewModels
@@ -16,7 +19,9 @@ namespace gc_bot.ViewModels
         private string _loginInfo = string.Empty;
         private bool _isBusy;
 
-        public AddRoleViewModel()
+        private readonly IRequestService? _requestService;
+
+        public AddRoleViewModel(IRequestService? requestService = null)
         {
             Platforms = new ObservableCollection<string>
             {
@@ -27,8 +32,10 @@ namespace gc_bot.ViewModels
 
             SelectedPlatform = Platforms.Count > 0 ? Platforms[0] : string.Empty;
 
-            // Placeholder (empty) login command — implement later.
-            LoginCommand = new RelayCommand(_ => { /* TODO: implement login */ }, _ => !IsBusy);
+            _requestService = requestService;
+
+            // Login command will call the injected IRequestService when available.
+            LoginCommand = new RelayCommand(async _ => { await LoginAsync(); }, _ => !IsBusy);
 
             // Confirm: create a Role and notify subscribers, then request the window to close with 'true'.
             ConfirmCommand = new RelayCommand(_ =>
@@ -107,6 +114,9 @@ namespace gc_bot.ViewModels
         // New event: raised when ConfirmCommand creates a Role.
         public event Action<Role>? RoleCreated;
 
+        // Expose the last login response for UI binding
+        public LoginResponse? LastLoginResponse { get; private set; }
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? name = null)
@@ -115,6 +125,58 @@ namespace gc_bot.ViewModels
             field = value!;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
             return true;
+        }
+
+        private async Task LoginAsync()
+        {
+            if (_requestService is null) 
+            {
+                LoginInfo = "No request service available.";
+                return;
+            }
+
+            IsBusy = true;
+            try
+            {
+                var req = new LoginRequest
+                {
+                    Platform = SelectedPlatform,
+                    Server = Server,
+                    Username = Username,
+                    Password = Password
+                };
+
+                var resp = await _requestService.LoginAsync(req);
+                LastLoginResponse = resp;
+
+                if (resp.Success && !string.IsNullOrWhiteSpace(resp.Token))
+                {
+                    // fetch user info with the returned token and display full raw response
+                    var gameInfo = await _requestService.GetStartGameAsync(resp.Token);
+                    if (gameInfo is not null)
+                        //if (gameInfo is not null && gameInfo.Success)
+                        {
+                        //LoginInfo = gameInfo?.RawJson ?? string.Empty;
+                        LoginInfo = gameInfo.ToString();
+                    }
+                    else
+                    {
+                        //LoginInfo = gameInfo?.RawJson ?? (gameInfo?.Message ?? $"Login succeeded but failed to get user info: {resp.Message}");
+                    }
+                }
+                else
+                {
+                    LoginInfo = $"Error: {resp.Message}";
+                }
+            }
+            catch (Exception ex)
+            {
+                LoginInfo = $"Login failed: {ex.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
     }
 

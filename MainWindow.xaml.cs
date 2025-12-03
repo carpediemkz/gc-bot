@@ -16,7 +16,18 @@ namespace gc_bot
         {
             InitializeComponent();
 
-            _vm = new MainViewModel();
+            // Resolve MainViewModel via DI if available so services can be injected.
+            var svc = (Application.Current as App)?.Services;
+            if (svc?.GetService(typeof(gc_bot.Requests.IRequestService)) is gc_bot.Requests.IRequestService req)
+            {
+                _vm = new MainViewModel();
+                // leave MainViewModel unchanged for now; AddRole dialog will receive IRequestService when opened
+            }
+            else
+            {
+                _vm = new MainViewModel();
+            }
+
             DataContext = _vm;
 
             // Subscribe to RoleAdded raised by the TopButtons control.

@@ -148,26 +148,30 @@ namespace gc_bot.ViewModels
 
                 var resp = await _requestService.LoginAsync(req);
                 LastLoginResponse = resp;
+                string content = resp.RawContent??"";
 
-                if (resp.Success && !string.IsNullOrWhiteSpace(resp.Token))
-                {
-                    // fetch user info with the returned token and display full raw response
-                    var gameInfo = await _requestService.GetStartGameAsync(resp.Token);
-                    if (gameInfo is not null)
-                        //if (gameInfo is not null && gameInfo.Success)
-                        {
-                        //LoginInfo = gameInfo?.RawJson ?? string.Empty;
-                        LoginInfo = gameInfo.ToString();
-                    }
-                    else
-                    {
-                        //LoginInfo = gameInfo?.RawJson ?? (gameInfo?.Message ?? $"Login succeeded but failed to get user info: {resp.Message}");
-                    }
-                }
-                else
-                {
-                    LoginInfo = $"Error: {resp.Message}";
-                }
+                var parsed = gc_bot.Requests.ParsedLoginParser.ParseLoginAndCookies(content);
+                LoginInfo = $"Welcome {parsed.UserName}!\n" + parsed.ToString();
+
+                //if (resp.Success && !string.IsNullOrWhiteSpace(resp.Token))
+                //{
+                //    // fetch user info with the returned token and display full raw response
+                //    var gameInfo = await _requestService.GetStartGameAsync(resp.Token);
+                //    if (gameInfo is not null)
+                //        //if (gameInfo is not null && gameInfo.Success)
+                //        {
+                //        //LoginInfo = gameInfo?.RawJson ?? string.Empty;
+                //        LoginInfo = gameInfo.ToString();
+                //    }
+                //    else
+                //    {
+                //        //LoginInfo = gameInfo?.RawJson ?? (gameInfo?.Message ?? $"Login succeeded but failed to get user info: {resp.Message}");
+                //    }
+                //}
+                //else
+                //{
+                //    LoginInfo = $"Error: {resp.Message}";
+                //}
             }
             catch (Exception ex)
             {

@@ -11,5 +11,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Playwright" Version="1.*" />
   </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>USE_PLAYWRIGHT;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
 
 </Project>

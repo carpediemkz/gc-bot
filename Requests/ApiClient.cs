@@ -1,3 +1,5 @@
+﻿using gc_bot.Requests.Models;
+using Microsoft.Playwright;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -5,7 +7,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using gc_bot.Requests.Models;
 
 namespace gc_bot.Requests
 {
@@ -130,7 +131,77 @@ namespace gc_bot.Requests
                 }
                 catch
                 {
-                    // Not JSON or parse failed: return raw content
+                    // Not JSON or parse failed: attempt browser-based login (if available) to execute JS and collect cookies,
+                    // then return the raw content plus collected cookies for debugging.
+#if USE_PLAYWRIGHT
+                    try
+                    {
+                        // Use Playwright to navigate and perform login if possible, so JS-set cookies are captured.
+                        using var playwright = await Microsoft.Playwright.Playwright.CreateAsync();
+                        var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true, Args = new[] { "--no-sandbox" } });
+                        var context = await browser.NewContextAsync();
+                        var page = await context.NewPageAsync();
+
+                        // Navigate to the site landing page (may contain login form or scripts)
+                        await page.GotoAsync("https://kuaiwan.com/index.html");
+
+                        // Try to fill common login fields and submit
+                        if (!string.IsNullOrWhiteSpace(request.Username))
+                        {
+                            if (await page.QuerySelectorAsync("input[name='user_name']") is not null)
+                                await page.FillAsync("input[name='user_name']", request.Username);
+                            else if (await page.QuerySelectorAsync("input[name='username']") is not null)
+                                await page.FillAsync("input[name='username']", request.Username);
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(request.Password))
+                        {
+                            if (await page.QuerySelectorAsync("input[name='password']") is not null)
+                                await page.FillAsync("input[name='password']", request.Password);
+                        }
+
+                        // Try click common submit buttons
+                        if (await page.QuerySelectorAsync("button[type='submit']") is not null)
+                        {
+                            await page.ClickAsync("button[type='submit']");
+                        }
+                        else if (await page.QuerySelectorAsync("button:has-text(\"登录\")") is not null)
+                        {
+                            await page.ClickAsync("button:has-text(\"登录\")");
+                        }
+                        else
+                        {
+                            // fallback: press Enter in password field
+                            if (!string.IsNullOrWhiteSpace(request.Password) && await page.QuerySelectorAsync("input[name='password']") is not null)
+                            {
+                                await page.PressAsync("input[name='password']", "Enter");
+                            }
+                        }
+
+                        try { await page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.NetworkIdle, new() { Timeout = 5000 }); } catch { }
+
+                        var finalCookies = await context.CookiesAsync();
+                        foreach (var c in finalCookies)
+                        {
+                            try
+                            {
+                                var domain = c.Domain?.TrimStart('.') ?? "";
+                                var scheme = c.Secure ? "https" : "http";
+                                var uri = new Uri($"{scheme}://{domain}/");
+                                var cookie = new System.Net.Cookie(c.Name, c.Value, c.Path ?? "/", domain);
+                                _cookies.Add(uri, cookie);
+                            }
+                            catch { /* ignore individual cookie errors */ }
+                        }
+
+                        await browser.CloseAsync();
+                    }
+                    catch
+                    {
+                        // swallow Playwright errors and continue to return raw content
+                    }
+#endif
+
                     var cookies = _cookies.GetCookieHeader(new Uri("https://kuaiwan.com"));
                     var raw = UnescapeUnicodeEscapes(content) + "\n\nCookies: " + cookies;
                     return new LoginResponse { Success = true, Message = content, Token = null, RawContent = raw };
@@ -215,7 +286,7 @@ namespace gc_bot.Requests
 
             // Set cookies similar to curl -b
             // Include ticket as cookie as well as REIGNID sample
-            req.Headers.TryAddWithoutValidation("Cookie", $"REIGNID=E1A02DCD249A4D5DAE6DBF5C4EE53651; ticket={ticket}");
+            // req.Headers.TryAddWithoutValidation("Cookie", $"REIGNID=E1A02DCD249A4D5DAE6DBF5C4EE53651; ticket={ticket}");
 
             try
             {
@@ -263,6 +334,25 @@ namespace gc_bot.Requests
                     return (object)$"HTTP {(int)resp.StatusCode}: {UnescapeUnicodeEscapes(content)}\n\nCookies: " + _cookies.GetCookieHeader(new Uri("http://kuaiwan.com"));
                 }
 
+                // 1) 获取所有 Set-Cookie 头（可能有多个）
+                if (resp.Headers.TryGetValues("Set-Cookie", out var setCookies))
+                {
+                    foreach (var sc in setCookies)
+                        Console.WriteLine(sc);
+                }
+                else if (resp.Content.Headers.TryGetValues("Set-Cookie", out var setCookies2))
+                {
+                    // 少数实现可能挂在 Content.Headers
+                    foreach (var sc in setCookies2)
+                        Console.WriteLine(sc);
+                }
+                else
+                {
+                    Console.WriteLine("No Set-Cookie header.");
+                }
+
+
+
                 // return raw HTML/JS content
                 return (object)(UnescapeUnicodeEscapes(content) + "\n\nCookies: " + _cookies.GetCookieHeader(new Uri("http://kuaiwan.com")));
             }
@@ -275,8 +365,6 @@ namespace gc_bot.Requests
                 return (object)ex.Message;
             }
         }
-
-
 
         public void Dispose()
         {

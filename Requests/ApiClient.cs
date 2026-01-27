@@ -15,8 +15,23 @@ namespace gc_bot.Requests
     /// </summary>
     public class ApiClient : IRequestService, IDisposable
     {
-        private static readonly HttpClient _http = new HttpClient();
+        private readonly HttpClient _http;
+        private readonly HttpClientHandler _handler;
+        private readonly System.Net.CookieContainer _cookies;
         private bool _disposed;
+
+        public ApiClient()
+        {
+            _cookies = new System.Net.CookieContainer();
+            _handler = new HttpClientHandler
+            {
+                CookieContainer = _cookies,
+                UseCookies = true,
+                AllowAutoRedirect = true
+            };
+
+            _http = new HttpClient(_handler, disposeHandler: false);
+        }
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
         {
@@ -108,12 +123,17 @@ namespace gc_bot.Requests
                         message = UnescapeUnicodeEscapes(message);
                     }
 
-                    return new LoginResponse { Success = success, Message = message, Token = token, RawContent = UnescapeUnicodeEscapes(content) };
+                // capture cookies as part of raw content for debug
+                var cookies = _cookies.GetCookieHeader(new Uri("https://kuaiwan.com"));
+                var raw = UnescapeUnicodeEscapes(content) + "\n\nCookies: " + cookies;
+                return new LoginResponse { Success = success, Message = message, Token = token, RawContent = raw };
                 }
                 catch
                 {
                     // Not JSON or parse failed: return raw content
-                    return new LoginResponse { Success = true, Message = content, Token = null, RawContent = UnescapeUnicodeEscapes(content) };
+                    var cookies = _cookies.GetCookieHeader(new Uri("https://kuaiwan.com"));
+                    var raw = UnescapeUnicodeEscapes(content) + "\n\nCookies: " + cookies;
+                    return new LoginResponse { Success = true, Message = content, Token = null, RawContent = raw };
                 }
             }
             catch (OperationCanceledException)
@@ -148,10 +168,9 @@ namespace gc_bot.Requests
 
                 if (!resp.IsSuccessStatusCode)
                 {
-                    return new UserInfoResponse { Ok = false, Reason = $"HTTP {(int)resp.StatusCode}", RawDataJson = UnescapeUnicodeEscapes(content) };
+                    return new UserInfoResponse { Ok = false, Reason = $"HTTP {(int)resp.StatusCode}", RawDataJson = UnescapeUnicodeEscapes(content) + "\n\nCookies: " + _cookies.GetCookieHeader(new Uri("https://kuaiwan.com")) };
                 }
-
-                return new UserInfoResponse { Ok = true, Reason = string.Empty, RawDataJson = UnescapeUnicodeEscapes(content) };
+                return new UserInfoResponse { Ok = true, Reason = string.Empty, RawDataJson = UnescapeUnicodeEscapes(content) + "\n\nCookies: " + _cookies.GetCookieHeader(new Uri("https://kuaiwan.com")) };
             }
             catch (OperationCanceledException)
             {
@@ -205,10 +224,9 @@ namespace gc_bot.Requests
 
                 if (!resp.IsSuccessStatusCode)
                 {
-                    return new GameInfoResponse { Success = false, Message = $"HTTP {(int)resp.StatusCode}", RawJson = UnescapeUnicodeEscapes(content) };
+                    return new GameInfoResponse { Success = false, Message = $"HTTP {(int)resp.StatusCode}", RawJson = UnescapeUnicodeEscapes(content) + "\n\nCookies: " + _cookies.GetCookieHeader(new Uri("http://s396.gcld2.teeqee.com")) };
                 }
-
-                return new GameInfoResponse { Success = true, Message = string.Empty, RawJson = UnescapeUnicodeEscapes(content) };
+                return new GameInfoResponse { Success = true, Message = string.Empty, RawJson = UnescapeUnicodeEscapes(content) + "\n\nCookies: " + _cookies.GetCookieHeader(new Uri("http://s396.gcld2.teeqee.com")) };
             }
             catch (OperationCanceledException)
             {
@@ -242,11 +260,11 @@ namespace gc_bot.Requests
 
                 if (!resp.IsSuccessStatusCode)
                 {
-                    return (object)$"HTTP {(int)resp.StatusCode}: {UnescapeUnicodeEscapes(content)}";
+                    return (object)$"HTTP {(int)resp.StatusCode}: {UnescapeUnicodeEscapes(content)}\n\nCookies: " + _cookies.GetCookieHeader(new Uri("http://kuaiwan.com"));
                 }
 
                 // return raw HTML/JS content
-                return (object)UnescapeUnicodeEscapes(content);
+                return (object)(UnescapeUnicodeEscapes(content) + "\n\nCookies: " + _cookies.GetCookieHeader(new Uri("http://kuaiwan.com")));
             }
             catch (OperationCanceledException)
             {
@@ -263,7 +281,9 @@ namespace gc_bot.Requests
         public void Dispose()
         {
             if (_disposed) return;
-            // do not dispose shared HttpClient
+            // dispose handler and http client
+            try { _http?.Dispose(); } catch { }
+            try { _handler?.Dispose(); } catch { }
             _disposed = true;
         }
 
